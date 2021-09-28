@@ -16,7 +16,7 @@ db = SQLAlchemy(app)
 
 html_list = []
 for i in [* range(3,772-23)]:
-    with open('static/page_contents/test_'+str(i)+'.html','r') as fp:
+    with open('static/page_contents/page_'+str(i)+'.html','r') as fp:
         page_indicator = '<br><br><span style="color:red">Page '+str(i)+'</span><br><br>'
         page = page_indicator + fp.read()
         html_list.append(page)
