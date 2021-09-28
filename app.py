@@ -41,8 +41,11 @@ class Entries(db.Model):
 
 @app.route('/')
 def index():
-    entries = Entries.query.all()
-    print(entries[0].entry_name, file=sys.stderr)
+    entries = Entries.query.order_by(Entries.id).all()
+    print(entries[0].id, file=sys.stderr)
+    print(entries[1].id, file=sys.stderr)
+    print(entries[2].id, file=sys.stderr)
+
     return render_template('entry_list.html', entries=entries)
 
 @app.route('/render/<page_number_current>')
