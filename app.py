@@ -42,10 +42,6 @@ class Entries(db.Model):
 @app.route('/')
 def index():
     entries = Entries.query.order_by(Entries.id).all()
-    print(entries[0].id, file=sys.stderr)
-    print(entries[1].id, file=sys.stderr)
-    print(entries[2].id, file=sys.stderr)
-
     return render_template('entry_list.html', entries=entries)
 
 @app.route('/render/<page_number_current>')
@@ -55,12 +51,11 @@ def render_page(page_number_current):
     entrynow = twoargs[1]
     curr_entry = Entries.query.get_or_404(int(entrynow))
     text = ''
+    
     if len(page_number)==1:
         text=html_list[int(page_number[0])-3]
     if len(page_number)==2:
         first = int(page_number[0])-3
-        print(first, file=sys.stderr)
-        print(html_list[0])
         last = int(page_number[1])-3
         for page in [* range(first, last+1)]:
             text = text + html_list[page]
@@ -86,7 +81,7 @@ def render_page(page_number_current):
             rehighlight_list.append(token)
     print(rehighlight_list)
     for elem in shighlight_list:
-        highlights = re.sub(re.escape(elem), '<span style="background-color:yellow">'+elem+'</span>', highlights, re.IGNORECASE)
+        highlights = re.sub(re.escape(elem), '<span style="background-color:yellow">'+elem+'</span>', highlights, flags=re.IGNORECASE)
     for elem in rehighlight_list:
         highlights = re.sub(re.escape(elem), '<span style="background-color:aqua">'+elem+'</span>', highlights)
     #entrynow = entrynow + ')'
