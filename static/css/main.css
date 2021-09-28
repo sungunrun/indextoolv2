@@ -1,0 +1,121 @@
+body{
+    margin: 50;
+    font-family: sans-serif;
+}
+#form1{
+    display:none;
+}
+
+/* .content {
+    margin: 0 auto;
+    width: 400px;
+} */
+
+#index_info {
+    float: right ;
+    width: 40% ;
+    height: 100vh;
+    overflow: scroll;
+}
+
+#page_links_section {
+    overflow: scroll;
+}
+#PGHEADER {
+    font-family: Sans-Serif;
+    font-size: 105%;
+    letter-spacing: normal;
+    line-height: 100%;
+    padding-bottom: 5px;
+  }
+
+  #FOOTNOTES {
+    font-family: Sans-Serif;
+    font-size: 85%;
+    letter-spacing: normal;
+    line-height: 100%;
+  }
+ 
+  #CHTITLE {
+    font-family: Sans-Serif;
+    font-size: 140%;
+    letter-spacing: normal;
+    line-height: 100%;
+  }
+  
+  #SUBSECTITLE {
+    font-family: Sans-Serif;
+    font-size: 110%;
+    letter-spacing: normal;
+    line-height: 100%;
+  }
+#reader {
+    float: right;
+    width: 58%;
+    overflow: scroll;
+    height: 100vh;
+    margin-right: 15px;
+    font-family: Serif;
+    font-size: 12pt;
+}
+#result {
+    font-family: Serif;
+    font-size: 12pt;
+}
+#page_links {
+    font-size: x-large;
+}
+
+table, td, th {
+    border: 1px solid #aaa;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+th {
+    height: 30px;
+}
+
+  /* Clear floats after the columns */
+  .row:after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+
+.ouptext{
+    padding: 20px;
+    width: 100%;
+    height: 100%;
+    overflow-y: scroll;
+}
+
+.seesnote{
+    font-size: large;
+}
+
+strong {
+    background-color: yellow;
+    font-weight: normal;
+ }
+
+.fulljustify {
+    text-align: justify;
+    width: 400px;
+    height: 100px;
+    overflow-y: scroll;    
+  }
+
+.fulljustify:after {
+    content: "";
+    display: inline-block;
+    width: 390px;
+  }
+
+td{
+    text-align: center;
+    padding: 5px;
+}

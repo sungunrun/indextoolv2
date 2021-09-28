@@ -1,0 +1,55 @@
+<div id="PGHEADER">
+84 perceptual constancy</div>
+<br><br>
+two very small regions of registration, such a difference is marked by the computation. <br>
+Such differences are potential smallest edge elements—which, in turn, are potential parts <br>
+of a contour line. Although these differences concern two adjacent smallest regions of <br>
+ sensory registration in a 2-D grid, the computation operates on a single value in the <br>
+ math em at ic al representation (the Fourier transform) of the image. The value is the second <br>
+derivative of the change. This value is called a ‘<i>zero-crossing</i>’. This value marks the in stantan<br>
+eous rate of change in registration of light intensity at that position. The result of this <br>
+first stage of computation identifies candidate edge elements. In effect, these registrations <br>
+are counterparts of very short lines in the retinal image, across which there are relatively <br>
+abrupt differences in light intensity.<br>
+<br>
+The computation’s second stage introduces the orientation of these potential edge elements.<br>
+Think of the sharp changes in registrations of light intensities as very short lines <br>
+along which the sharp contrasts occur in the 2-D grid that, at this point in visual processing,<br>
+registers the retinal image. Orientations of these lines correspond to angles of their <br>
+direction in the 2-D retinal image.<br>
+<br>
+It is known that some neuron/filters in the primary visual cortex, V1, are non-oriented. <br>
+Neurons in the retina are non-oriented. When they are first stimulated, they do not register<br>
+information about the orientation of changes in light frequency. But many neuron filters<br>
+in the primary visual cortex are oriented. These filters are, of course, further along in <br>
+the processing of sensory information than the initial retinal receptors. A fair amount is <br>
+known about the orientation characteristics of these neuron/filters. On average, such <br>
+ neuron/filters in mammalian vision are sensitive to bands of orientation that are 40 degrees <br>
+in width. For example, a neuron might be sensitive to line-segment orientations between <br>
+70 and 110 degrees on a circle. The neuron fires for, and the filter registers, changes in <br>
+intensity along any short edge segment oriented at an angle between 70 and 110 degrees. <br>
+It fires most strongly for edge segments oriented at 90 degrees.<br>
+<br>
+Different neurons are specialized for many different types of orientation. For purposes <br>
+of the computation, one can model orientations at approximately 10 degrees of shift in <br>
+orientation. For example, in addition to our initial neuron, the computation assumes <br>
+neuro ns oriented to the band between 80 and 120 degrees, 90 and 130 degrees, and so on. <br>
+Around a circle, there are 18 orientations of the relevant short edge segments—across <br>
+which abrupt changes of registration of light intensities occur. So there are 18 types of <br>
+orientation-specialization for purposes of the idealized computation that models a much <br>
+more complex set of specializations in actual mammalian V1.<br>
+<br>
+According to the computational model, each receptor is sensitive to a 40-degree bandwidth<br>
+in orientation. Since there is only a 10-degree difference in receptors sensitive to a <br>
+given orientation, any given potential edge element in the physical environment causes <br>
+neural receptors at different bands of orientation to respond. For example, if an edge in the <br>
+retinal image is oriented at 90 degrees from vertical, receptors centered on 50–90, 60–100, <br>
+70–110, 80–120, and 90–130 all respond. The appropriate registration of the orientation of <br>
+the edge segment is obtained by finding the peak energy response among these different <br>
+orientations (presumably the response given by the receptors with the 70–110 orientation <br>
+bandwidth).<br>
+<br>
+The computation’s second stage, then, takes every relatively abrupt difference in registra<br>
+tion of light intensity in the retinal image that had been flagged by the first stage, and <br>
+marks the orientation of that difference. See Figure 3.1.</div>
+

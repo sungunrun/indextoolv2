@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script type=text/javascript>
+    function renderPage(elem) {
+        $.get("/render/" + $(elem).attr("name")+','+'{{current_entry.id}}', function(data){
+            $("#result").html(data); $("#pagenolarge").html($(elem).attr("name"));
+        });
+    }
+</script>
+<script type=text/javascript>
+    function emphPage(elem) {
+        $.post("/indiv_entry/" + "{{current_entry.id}}", { reqtype: "emphasize", content: $(elem).attr("name")
+        });
+        $("#pgbtn"+$(elem).attr("name")).attr('style', 'font-style:italic');
+    }
+</script>
+<script type=text/javascript>
+    function removePage(elem) {
+        $.post("/indiv_entry/" + "{{current_entry.id}}", { reqtype: "remove", content: $(elem).attr("name")
+        });
+        $("#pgbtn"+$(elem).attr("name")).attr('style', 'color:red');
+    }
+</script>
+<script>
+    function myFunction(elem) {
+        var id = "tools"+$(elem).attr("id");
+        var x = document.getElementById(id);
+        if (x.style.display === "none") {
+            x.style.display = "block";
+        } 
+        else {
+            x.style.display = "none";
+        }
+}
+</script>
+
+{% endblock %}
+
+{% block body %}
+
+<div id="entry_container">
+
+<div id="index_info">
+
+<h1>{{current_entry.entry_name}}</h1>
+<a href="/indiv_entry/{{current_entry.id-1}}">Previous entry</a>
+<a href="/">Entries list</a>
+<a href="/indiv_entry/{{current_entry.id+1}}">Next entry</a><br><br>
+
+<div class="seesnote">
+    <i>see</i>: {{current_entry.see}}<br>
+    <i>see also</i>: {{current_entry.seealso}}
+</div>
+
+<h3>Matching dictionary</h3>
+{% for token in tokens %}
+{{ token }}<br>
+{% endfor %}
+
+<h3>Pages</h3>
+<div class="page_links_section">
+
+{% set pages = current_entry.pages_ranges %}
+{% for page in pages.split(',') %}
+
+{% set style='color:black' %}
+{% if page in removals %}
+{% set style='color:red'%}
+{% endif %}
+{% if page in emphases %}
+{% set style='font-style:italic'%}
+{% endif %}
+<div id="page_links">
+<a href=# id=pgbtn{{page}} name={{page}} onclick="renderPage(this)" style={{style}}>{{page}}</button></a>
+<a href=# id={{page}} name={{page}} onclick="emphPage(this)" style="font-size:medium">Emphasize</button></a>
+<a href=# id={{page}} name={{page}} onclick="removePage(this)" style="font-size:medium">Remove</button></a>
+<a href=# id ={{page}} name={{page}} onclick="myFunction(this)" style="font-size:medium">Subrange tools</button></a>
+<div id="tools{{page}}" style="display:none">
+<form action="/indiv_entry/{{current_entry.id}}"  id="form{{page}}" method="POST">
+    <input type="hidden" name="reqtype" value="subrange">
+    <span style="font-size: medium"><b>Emphasize subrange:</b></span><br>
+    <span style="font-size: medium">From</span> <input type="text" name="firstpage">
+    <span style="font-size: medium">To</span><input type="text" name="secondpage">
+   <button type="submit" id="submit_subrange" name="submit_sr">Submit</button>
+</form>
+</div>
+<br>
+</div>
+{% endfor %}
+</div>
+
+</div>
+
+<div id="reader">
+
+<h3>Page <span id="pagenolarge">0</span></h3>
+<p id="result">Result here.</p>
+</div>
+
+{% endblock %}
+
+
+</div>
+
+
+
+
+
+
+
+
+<h3>Text:</h3>

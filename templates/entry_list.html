@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<h1>
+Entries List
+</h1>
+{% endblock %}
+
+{% block body %}
+
+{% for entry in entries %}
+
+<a href="/indiv_entry/{{entry.id}}">{{ entry.entry_name }}</a>
+<br>
+
+{% endfor %}
+
+{% endblock %}
