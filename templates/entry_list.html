@@ -8,10 +8,12 @@ Entries List
 
 {% block body %}
 
+<div class="entries_list">
 {% for entry in entries %}
 
 <a href="/indiv_entry/{{entry.id}}">{{ entry.entry_name }}</a>
 <br>
+</div>
 
 {% endfor %}
 

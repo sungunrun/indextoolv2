@@ -104,9 +104,11 @@
             {% endif %}
             {% if '-' in page %}
             {% set currDict = subrangeDict[page] %}
+            {% if current_entry.emphasized_subranges and current_entry.emphasized_subranges != '' %}
+            {% set emph_sr=currDict['emph_sr_strings']%} 
+            {% endif %}
             {% if currDict['isEdited']=='1'%}
             {% set style='color:green' %}
-            {% set emph_sr=currDict['emph_sr_strings']%} 
             {% endif %}
             {% endif %}
             <div class="page_container" id="cont{{page}}">
