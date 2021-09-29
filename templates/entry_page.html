@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-
 {% block head %}
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 <script type=text/javascript>
@@ -11,104 +10,148 @@
 </script>
 <script type=text/javascript>
     function emphPage(elem) {
-        $.post("/indiv_entry/" + "{{current_entry.id}}", { reqtype: "emphasize", content: $(elem).attr("name")
+        $.post("/emphasize/" + "{{current_entry.id}}", { reqtype: "emphasize", content: $(elem).attr("name")
         });
         $("#pgbtn"+$(elem).attr("name")).attr('style', 'font-style:italic');
     }
 </script>
 <script type=text/javascript>
     function removePage(elem) {
-        $.post("/indiv_entry/" + "{{current_entry.id}}", { reqtype: "remove", content: $(elem).attr("name")
+        $.post("/remove/" + "{{current_entry.id}}", { reqtype: "remove", content: $(elem).attr("name")
         });
         $("#pgbtn"+$(elem).attr("name")).attr('style', 'color:red');
     }
 </script>
-<script>
+<script type=text/javascript>
+    function updateEmph(elem) {
+        $.post("/emph_subrange/" + $("#form"+$(elem).attr("name")).serialize()+"&{{current_entry.id}}", function(data){
+            $("#emphsrs"+$(elem).attr("name")).text(data);
+        } );
+        $("#form"+$(elem).attr("name")).trigger("reset");
+        $("#pgbtn"+$(elem).attr("name")).attr('style', 'color:green');
+
+    }
+</script>
+<script type=text/javascript>
+    function rangeRemove(elem) {
+        $.post("/rangeremove/" + $(elem).attr("name"), function(data){
+            $("#hit"+data).attr('style','color:red');
+            $("#pgbtn"+$(elem).attr("name")).attr('style', 'color:red');
+        });
+        $("#pgbtn"+$(elem).attr("id")).attr('style', 'color:green');
+
+    }
+</script>
+<script type=text/javascript>
     function myFunction(elem) {
-        var id = "tools"+$(elem).attr("id");
-        var x = document.getElementById(id);
-        if (x.style.display === "none") {
-            x.style.display = "block";
-        } 
-        else {
-            x.style.display = "none";
-        }
+        $.get("/getheight/" + $("#cont"+$(elem).attr("name")).css("height"), function(data){
+            if(data=="small"){
+                $("#cont"+$(elem).attr("name")).css("height", "45vh");
+                $("#tools"+$(elem).attr("name")).css("display", "block");
+            }
+            else {
+                $("#cont"+$(elem).attr("name")).css("height", "45px");
+                $("#tools"+$(elem).attr("name")).css("display", "none");
+            }
+        });
 }
 </script>
-
 {% endblock %}
 
 {% block body %}
 
-<div id="entry_container">
+<div class="container">
+    
+    <div class="reader_block">
+        <div class="reader_header">
+            <h3>Page <span id="pagenolarge">0</span></h3>
+        </div>
+        <div class="reader_body" >
+            <p id="result">Page text here.</p>
+        </div>
+    </div>
 
-<div id="index_info">
 
-<h1>{{current_entry.entry_name}}</h1>
-<a href="/indiv_entry/{{current_entry.id-1}}">Previous entry</a>
-<a href="/">Entries list</a>
-<a href="/indiv_entry/{{current_entry.id+1}}">Next entry</a><br><br>
+    <div class="entry_info">
+        <div class="entry_details">
+            <h1>{{current_entry.entry_name}}</h1>
+            <div class="entry_controls">
+                <a href="/indiv_entry/{{current_entry.id-1}}">Previous entry</a> 
+                <a href="/">Entries list</a>
+                <a href="/indiv_entry/{{current_entry.id+1}}">Next entry</a><br>
+            </div>
+            <div class="seesnote">
+                <i>see</i>: {{current_entry.see}}<br>
+                <i>see also</i>: {{current_entry.seealso}}
+            </div>
+            <div style="padding: 0px 0px 0px 10px;">
+                <h3>Matching dictionary</h3>
+                    {% for token in tokens %}
+                    {{ token }}<br>
+                    {% endfor %}
+            </div>
+        </div>
+        <div class="page_links_section">
+            <div class = "interstitial"></div>
+            {% set pages = current_entry.pages_ranges %}
+            {% for page in pages.split(',') %}
+            {% set style='color:black' %}
+            {% if page in removals %}
+            {% set style='color:red'%}
+            {% endif %}
+            {% if page in emphases %}
+            {% set style='font-style:italic'%}
+            {% endif %}
+            {% if '-' in page %}
+            {% set currDict = subrangeDict[page] %}
+            {% if currDict['isEdited']=='1'%}
+            {% set style='color:green' %}
+            {% set emph_sr=currDict['emph_sr_strings']%} 
+            {% endif %}
+            {% endif %}
+            <div class="page_container" id="cont{{page}}">
+                <div class="page_details_container" id="deets{{page}}">
+                    <div class="page_numbers" id="num{{page}}">
+                        <a href=# id=pgbtn{{page}} name={{page}} onclick="renderPage(this)" style={{style}}>{{page}}</button></a>
+                    </div>
+                    <div class="page_buttons">
+                        <a href=# id={{page}} name={{page}} onclick="emphPage(this)" style="font-size:medium">Emphasize</button></a>
+                        <a href=# id={{page}} name={{page}} onclick="removePage(this)" style="font-size:medium">Remove</button></a>
+                        <a href=# id ={{page}} name={{page}} onclick="myFunction(this)" style="font-size:medium">Subrange tools</button></a>
+                    </div>
+                </div>
+                <div class="subrange_tools_container" id="tools{{page}}" style="display:none">
+                    <div class="subrange_info">
+                        <b>Current subranges:</b> (Under construction)<br>
+                        <b>Emphasized subranges:</b> <i><span id="emphsrs{{page}}"> {{emph_sr}} </span></i><br>
+                        <form id="form{{page}}" name="formz{{page}}">
+                            <input type="hidden" name="pageToEmph" value="{{page}}">
+                            <span style="font-size: medium"><b>Emphasize</b></span>
+                            <span style="font-size: medium" >from </span> <input type="text" name="firstpage" style="width:30px">
+                            <span style="font-size: medium">to </span><input type="text" name="secondpage" style="width:30px">
+                           <button type="button" id="submitSR{{page}}" name={{page}} onclick="updateEmph(this)">Submit</button>
+                        </form>
+                    </div>
+                    <div class="subrange_pages">
+                        {% if '-' in page %}
+                        {% set currDict = subrangeDict[page] %}
+                        {% for hit in currDict['all_hits'] %}
+                        {% set style_rmv = 'color:black' %}
+                        {% if hit in currDict['removals']%}
+                        {% set style_rmv = 'color:red'%}
+                        {% endif %}
+                        <span id="hit{{hit}}" style={{style_rmv}}>{{hit}}</span>
+                        <a href=# name="rangeremove:{{current_entry.id}}_{{page}}_{{hit}}" id={{page}} onclick="rangeRemove(this)" style="font-size:medium">Remove</button></a><br>
+                        {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
 
-<div class="seesnote">
-    <i>see</i>: {{current_entry.see}}<br>
-    <i>see also</i>: {{current_entry.seealso}}
-</div>
-
-<h3>Matching dictionary</h3>
-{% for token in tokens %}
-{{ token }}<br>
-{% endfor %}
-
-<h3>Pages</h3>
-<div class="page_links_section">
-
-{% set pages = current_entry.pages_ranges %}
-{% for page in pages.split(',') %}
-
-{% set style='color:black' %}
-{% if page in removals %}
-{% set style='color:red'%}
-{% endif %}
-{% if page in emphases %}
-{% set style='font-style:italic'%}
-{% endif %}
-<div id="page_links">
-<a href=# id=pgbtn{{page}} name={{page}} onclick="renderPage(this)" style={{style}}>{{page}}</button></a>
-<a href=# id={{page}} name={{page}} onclick="emphPage(this)" style="font-size:medium">Emphasize</button></a>
-<a href=# id={{page}} name={{page}} onclick="removePage(this)" style="font-size:medium">Remove</button></a>
-<a href=# id ={{page}} name={{page}} onclick="myFunction(this)" style="font-size:medium">Subrange tools</button></a>
-<div id="tools{{page}}" style="display:none">
-<form action="/indiv_entry/{{current_entry.id}}"  id="form{{page}}" method="POST">
-    <input type="hidden" name="reqtype" value="subrange">
-    <span style="font-size: medium"><b>Emphasize subrange:</b></span><br>
-    <span style="font-size: medium">From</span> <input type="text" name="firstpage">
-    <span style="font-size: medium">To</span><input type="text" name="secondpage">
-   <button type="submit" id="submit_subrange" name="submit_sr">Submit</button>
-</form>
-</div>
-<br>
-</div>
-{% endfor %}
-</div>
-
-</div>
-
-<div id="reader">
-
-<h3>Page <span id="pagenolarge">0</span></h3>
-<p id="result">Result here.</p>
+        </div>
+    </div>
 </div>
 
 {% endblock %}
 
-
-</div>
-
-
-
-
-
-
-
-
-<h3>Text:</h3>
