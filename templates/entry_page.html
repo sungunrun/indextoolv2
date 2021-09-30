@@ -95,21 +95,30 @@
             <div class = "interstitial"></div>
             {% set pages = current_entry.pages_ranges %}
             {% for page in pages.split(',') %}
+            
+            {% set emph_sr = 'None' %}
+            
             {% set style='color:black' %}
+
             {% if page in removals %}
             {% set style='color:red'%}
             {% endif %}
+
             {% if page in emphases %}
             {% set style='font-style:italic'%}
             {% endif %}
+
             {% if '-' in page %}
+
             {% set currDict = subrangeDict[page] %}
             {% if current_entry.emphasized_subranges and current_entry.emphasized_subranges != '' %}
             {% set emph_sr=currDict['emph_sr_strings']%} 
             {% endif %}
+
             {% if currDict['isEdited']=='1'%}
             {% set style='color:green' %}
             {% endif %}
+
             {% endif %}
             <div class="page_container" id="cont{{page}}">
                 <div class="page_details_container" id="deets{{page}}">
