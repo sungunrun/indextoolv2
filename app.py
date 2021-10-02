@@ -100,6 +100,7 @@ def render_page(page_number_current):
     return highlights
     #return send_from_directory('static/page_contents', 'plaintext' + page_number + '.html')
 
+#REMOVE INDIVIDUAL PAGES
 @app.route('/remove/<int:id>', methods=['POST','GET'])
 def remove(id):
     current_entry = Entries.query.get_or_404(id)
@@ -112,6 +113,7 @@ def remove(id):
         db.session.commit()
         return redirect('/')
 
+#EMPHASIZE INDIVIDUAL PAGES
 @app.route('/emphasize/<int:id>', methods=['POST','GET'])
 def emphasize(id):
     current_entry = Entries.query.get_or_404(id)
@@ -124,6 +126,7 @@ def emphasize(id):
         db.session.commit()
         return redirect('/')
 
+#GET PAGE HEIGHT
 @app.route('/getheight/<height_string>', methods=['POST','GET'])
 def getheight(height_string):
     height = int(height_string[:-2])
@@ -134,6 +137,7 @@ def getheight(height_string):
     elif height > 100:
         return "large"
 
+#REMOVE PAGE FROM RANGE
 @app.route('/rangeremove/<removal_info>', methods=['POST','GET'])
 def rangeremove(removal_info):
     rmvargs = removal_info.split(':')[1]
@@ -164,6 +168,8 @@ def emph_subrange(emph_info):
         print(first)
         emphid = int(emphargs[3])
         current_entry = Entries.query.get_or_404(emphid)
+        if not current_entry.emphasized_subranges:
+            current_entry.emphasized_subranges = ''
         if current_entry.emphasized_subranges == '':
             current_entry.emphasized_subranges = current_entry.emphasized_subranges  + first+'-'+second + ','
         else:
