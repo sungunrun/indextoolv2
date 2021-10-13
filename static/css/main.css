@@ -45,6 +45,13 @@ body {
    padding: 0px 0px 0px 10px;
  }
 
+ .entry_deletion{
+  padding: 0px 0px 0px 10px;
+}
+ .entry_renaming{
+  padding: 0px 0px 0px 10px;
+}
+
  .entry_info {
    display: grid;
    grid-template-rows: 40% 60%;

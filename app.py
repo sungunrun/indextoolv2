@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.dialects.postgresql import JSON
+from sqlalchemy.dialects.postgresql import JSON, ARRAY
 import json
 import re
 import sys
@@ -22,7 +22,7 @@ for i in [* range(3,772-23)]:
         html_list.append(page)
 
 class Entries(db.Model):
-    __tablename__ = 'test2'
+    __tablename__ = 'test4'
     id = db.Column(db.Integer, primary_key=True)
     entry_name = db.Column(db.String)
     see = db.Column(db.String)
@@ -37,6 +37,25 @@ class Entries(db.Model):
     emphasized_pages = db.Column(db.String)
     emphasized_subranges = db.Column(db.String)
     range_dict = db.Column(JSON)
+    entry_name_final = db.Column(db.String)
+    see_final = db.Column(db.String)
+    seealso_final = db.Column(db.String)
+    base_all_hits = db.Column(ARRAY(db.Integer))
+    hits_with_removals = db.Column(ARRAY(db.Integer))
+    base_emphs = db.Column(ARRAY(db.Integer))
+    base_emphs_json = db.Column(JSON)
+    all_emphs = db.Column(ARRAY(db.Integer))
+    to_delete = db.Column(db.Integer)
+    added_pages = db.Column(ARRAY(db.Integer))
+    added_emphs = db.Column(ARRAY(db.Integer))
+    curr_ranges = db.Column(JSON)
+    pages_final_pt = db.Column(db.String)
+    pages_final_html = db.Column(db.String)
+    is_renamed = db.Column(db.Integer)
+    is_seechanged = db.Column(db.Integer)
+    is_seealsochanged = db.Column(db.Integer)
+    is_pageadded = db.Column(db.Integer)
+
 
 
 @app.route('/')
@@ -157,6 +176,7 @@ def rangeremove(removal_info):
     db.session.commit()
     return rmv_hit
 
+#EMPH SUBRANGE
 @app.route('/emph_subrange/<emph_info>', methods=['POST','GET'])
 def emph_subrange(emph_info):
     if request.method == 'POST':
@@ -186,6 +206,88 @@ def emph_subrange(emph_info):
         db.session.commit()
         return newEmphSRs
 
+#DELETE ENTRY
+@app.route('/delete_entry/<int:id>', methods=['POST','GET'])
+def delete_entry(id):
+    current_entry = Entries.query.get_or_404(id)
+    print("Hello")
+    current_entry.to_delete = 1
+    db.session.commit()
+    return "Okay"
+
+#REINSTATE ENTRY
+@app.route('/reinstate_entry/<int:id>', methods=['POST','GET'])
+def reinstate_entry(id):
+    current_entry = Entries.query.get_or_404(id)
+    print("Hello")
+    current_entry.to_delete = 0
+    db.session.commit()
+    return "Okay"
+
+#RENAME ENTRY
+@app.route('/rename_entry/<rename_info>', methods=['POST', 'GET'])
+def rename_entry(rename_info):
+    args = rename_info.split('&')
+    cEntry = Entries.query.get_or_404(int(args[0]))
+    cEntry.entry_name_final = args[1]
+    cEntry.is_renamed = 1
+    db.session.commit()
+    return args[1]
+
+#RESET ENTRY NAME
+@app.route('/reset_entry_name/<int:id>', methods=['POST', 'GET'])
+def reset_entry_name(id):
+    cEntry = Entries.query.get_or_404(id)
+    cEntry.entry_name_final = cEntry.entry_name
+    cEntry.is_renamed = 0
+    db.session.commit()
+    return cEntry.entry_name
+
+#UPDATE SEE ALSO
+@app.route('/update_see_also/<seealsoinfo>', methods=['POST','GET'])
+def update_see_also(seealsoinfo):
+    args = seealsoinfo.split('&&')
+    cEntry = Entries.query.get_or_404(int(args[1]))
+    updatedSA = args[0]
+    cEntry.seealso_final = updatedSA
+    cEntry.is_seealsochanged = 1
+    db.session.commit()
+    return updatedSA
+
+#UPDATE SEE
+@app.route('/update_see/<seeinfo>', methods=['POST','GET'])
+def update_see(seeinfo):
+    args = seeinfo.split('&&')
+    cEntry = Entries.query.get_or_404(int(args[1]))
+    updatedS = args[0]
+    cEntry.see_final = updatedS
+    cEntry.is_seechanged = 1
+    db.session.commit()
+    return updatedS
+
+#RESET SEE
+@app.route('/reset_see/<int:id>', methods=['POST','GET'])
+def reset_see(id):
+    cEntry = Entries.query.get_or_404(id)
+    oldsee = cEntry.see
+    print(oldsee,file=sys.stderr)
+    cEntry.see_final = oldsee
+    cEntry.is_seechanged = 0
+    db.session.commit()
+    return oldsee
+
+#RESET SEE ALSO
+@app.route('/reset_see_also/<int:id>', methods=['POST','GET'])
+def reset_see_also(id):
+    cEntry = Entries.query.get_or_404(id)
+    oldseealso = cEntry.seealso
+    print(oldseealso,file=sys.stderr)
+    cEntry.seealso_final = oldseealso
+    cEntry.is_seealsochanged = 0
+    db.session.commit()
+    return oldseealso
+
+#RENDER INDIV ENTRY
 @app.route('/indiv_entry/<int:id>', methods=['POST', 'GET'])
 def indiv_entry(id):
     current_entry = Entries.query.get_or_404(id)

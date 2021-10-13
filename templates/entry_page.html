@@ -54,8 +54,113 @@
                 $("#tools"+$(elem).attr("name")).css("display", "none");
             }
         });
-}
+    }
 </script>
+<script type=text/javascript>
+    function deleteEntry(elem){
+        $.post("/delete_entry/" + "{{current_entry.id}}", function(data){
+            $("#entrytitle").attr('style', 'color:red');
+            $("#deleteentrydiv").attr('style', 'display:none');
+            $("#reinstateentrydiv").attr('style', 'display:block');
+        });
+    }
+</script>
+<script type=text/javascript>
+    function reinstateEntry(elem){
+        $.post("/reinstate_entry/" + "{{current_entry.id}}", function(data){
+            $("#entrytitle").attr('style', 'color:black');
+            $("#deleteentrydiv").attr('style', 'display:block');
+            $("#reinstateentrydiv").attr('style', 'display:none');
+        });
+    }
+</script>
+
+<script type=text/javascript>
+    function renameEntry(elem){
+        let newname = prompt("Please input new entry title")
+        $.post("/rename_entry/"+"{{current_entry.id}}"+"&"+newname, function(data){
+            $("#entrytitle").html(data);
+            $("#entrytitle").attr('style', 'color:green');
+            $("#renameentrydiv").attr('style', 'display:none');
+            $("#resetentrydiv").attr('style', 'display:block');
+
+        });
+    }
+</script>
+
+<script type=text/javascript>
+    function resetEntryName(elem){
+        $.post("/reset_entry_name/" + "{{current_entry.id}}", function(data){
+            $("#entrytitle").html(data);
+            $("#entrytitle").attr('style', 'color:black');
+            $("#renameentrydiv").attr('style', 'display:block');
+            $("#resetentrydiv").attr('style', 'display:none')
+        });
+    }
+</script>
+
+<script type=text/javascript>
+    function editSee(elem){
+        $("#see_default").attr('style','display:none');
+        $("#see_update").attr('style','display:block');
+    }
+</script>
+
+<script type=text/javascript>
+    function updateSeeAlso(elem){
+        $.post("/update_see_also/" + $("#seealsotext").val()+"&&{{current_entry.id}}", function(data){
+            $("#seealso_default").html("<br><i>see also:</i> " + data)
+            $("#seealsotext").text("")
+            $("#seealso_default").attr('style','display:block; color:green');
+            $("#seealso_update").attr('style','display:none');
+        });
+    }
+</script>
+
+<script type=text/javascript>
+    function showSeeAlso(elem){
+        $("#seealso_default").attr('style','display:none');
+        $("#seealso_update").attr('style','display:block');
+    }
+</script>
+
+<script type=text/javascript>
+    function updateSee(elem){
+        $.post("/update_see/" + $("#seetext").val()+"&&{{current_entry.id}}", function(data){
+            $("#see_default").html("<i>see:</i> " + data)
+            $("#seetext").text("")
+            $("#see_default").attr('style','display:block; color:green');
+            $("#see_update").attr('style','display:none');
+        });
+    }
+</script>
+
+<script type=text/javascript>
+    function showSee(elem){
+        $("#see_default").attr('style','display:none');
+        $("#see_update").attr('style','display:block');
+    }
+</script>
+
+<script type=text/javascript>
+    function resetSee(elem){
+        $.post("/reset_see/"+"{{current_entry.id}}", function(data){
+            $("#see_default").attr('style','display:block;color:black');
+            $("#see_default").html('<i>see</i>: '+data);
+        })
+    }
+</script>
+
+<script type=text/javascript>
+    function resetSeeAlso(elem){
+        $.post("/reset_see_also/"+"{{current_entry.id}}", function(data){
+            $("#seealso_default").attr('style','display:block;color:black');
+            $("#seealso_default").html('<br><i>see also</i>: '+data);
+        })
+    }
+</script>
+
+
 {% endblock %}
 
 {% block body %}
@@ -74,17 +179,97 @@
 
     <div class="entry_info">
         <div class="entry_details">
-            <h1>{{current_entry.entry_name}}</h1>
             <div class="entry_controls">
                 <a href="/indiv_entry/{{current_entry.id-1}}">Previous entry</a> 
                 <a href="/">Entries list</a>
                 <a href="/indiv_entry/{{current_entry.id+1}}">Next entry</a><br>
             </div>
-            <div class="seesnote">
-                <i>see</i>: {{current_entry.see}}<br>
-                <i>see also</i>: {{current_entry.seealso}}
+
+            {% if current_entry.is_renamed == 1 %}
+                <h1 id='entrytitle' style = "color:green">{{current_entry.entry_name_final}}</h1>
+            {% elif current_entry.to_delete == 1 %}
+                <h1 id='entrytitle' style = "color:red">{{current_entry.entry_name_final}}</h1>
+            {% else %}
+                <h1 id='entrytitle'>{{current_entry.entry_name_final}}</h1>
+            {% endif %}
+
+            <div class = "entry_deletion">
+                {% if current_entry.to_delete == 0 %}
+                {% set dstyle1 = 'display:block' %}
+                {% set dstyle2 = 'display:none' %}
+                {% else %}
+                {% set dstyle2 = 'display:block' %}
+                {% set dstyle1 = 'display:none' %}
+                {% endif %}
+                <div id='deleteentrydiv' style={{dstyle1}}>
+                    <a href=#  onclick="deleteEntry(this)">Delete entry</button></a>
+                </div>
+                <div id='reinstateentrydiv' style={{dstyle2}}>
+                    <a href=#  onclick="reinstateEntry(this)">Reinstate entry</button></a>
+                    </div>
+                
+                {% if current_entry.is_renamed == 0 %}
+                {% set rstyle1 = 'display:block' %}
+                {% set rstyle2 = 'display:none' %}
+                {% else %}
+                {% set rstyle2 = 'display:block' %}
+                {% set rstyle1 = 'display:none' %}
+                {% endif %}
+                <div id='renameentrydiv' style={{rstyle1}}>
+                    <a href=#  onclick="renameEntry(this)">Rename entry</button></a>
+                </div>
+                <div id='resetentrydiv' style={{rstyle2}}>
+                    <a href=#  onclick="resetEntryName(this)">Reset entry name</button></a>
+                    </div>
             </div>
-            <div style="padding: 0px 0px 0px 10px;">
+
+
+            <div class="seesnote">
+                {% if current_entry.is_seechanged == 1 %}
+                {% set sstyle1 = 'color:green' %}
+                {% endif %}
+                {% set sstyle2 = 'display:none' %}
+                <div id='see_default' style={{sstyle1}}>
+                <i>see</i>: {{current_entry.see_final}}
+                </div>
+                <div id='see_update' style={{sstyle2}}>
+                <i>see</i>:<br>
+                {% set seetext = current_entry.see_final.strip() %}
+                <form id='see_form'>
+                    <textarea id="seetext" name="seetext" rows="4" cols="50">{{seetext}}</textarea><br>
+                    <button type="button" id="seebutton" name="seebutton" onclick="updateSee(this)">
+                        Submit
+                    </button>
+                </form>
+                </div>
+
+                <a href=#  onclick="showSee(this)">Edit <i>see</i></button></a><span style="padding-left:10px"> </span>
+                <a href=#  onclick="resetSee(this)">Reset <i>see</i></button></a>
+
+                {% if current_entry.is_seealsochanged == 1 %}
+                {% set sastyle1 = 'color:green' %}
+                {% endif %}
+                {% set sastyle2 = 'display:none' %}
+                <div id='seealso_default' style={{sastyle1}}>
+                    <br>
+                    <i>see also</i>: {{current_entry.seealso_final}}
+                </div>
+                <div id='seealso_update' style={{sastyle2}}>
+                <i>see also</i>:<br>
+                {% set seealsotext = current_entry.seealso_final.strip() %}
+                <form id='seealso_form'>
+                    <textarea id="seealsotext" name="seealsotext" rows="4" cols="50">{{seealsotext}}</textarea><br>
+                    <button type="button" id="seealsobutton" name="seealsobutton" onclick="updateSeeAlso(this)">
+                        Submit
+                    </button>
+                </form>
+                </div>
+
+                <a href=#  onclick="showSeeAlso(this)">Edit <i>see also</i></button></a><span style="padding-left:10px"> </span>
+                <a href=#  onclick="resetSeeAlso(this)">Reset <i>see also</i></button></a>
+            </div>
+
+            <div style="padding: 0px 0px 0px 10px;display:none">
                 <h3>Matching dictionary</h3>
                     {% for token in tokens %}
                     {{ token }}<br>
