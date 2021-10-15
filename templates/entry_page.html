@@ -74,7 +74,6 @@
         });
     }
 </script>
-
 <script type=text/javascript>
     function renameEntry(elem){
         let newname = prompt("Please input new entry title")
@@ -87,7 +86,6 @@
         });
     }
 </script>
-
 <script type=text/javascript>
     function resetEntryName(elem){
         $.post("/reset_entry_name/" + "{{current_entry.id}}", function(data){
@@ -98,14 +96,12 @@
         });
     }
 </script>
-
 <script type=text/javascript>
     function editSee(elem){
         $("#see_default").attr('style','display:none');
         $("#see_update").attr('style','display:block');
     }
 </script>
-
 <script type=text/javascript>
     function updateSeeAlso(elem){
         $.post("/update_see_also/" + $("#seealsotext").val()+"&&{{current_entry.id}}", function(data){
@@ -116,14 +112,12 @@
         });
     }
 </script>
-
 <script type=text/javascript>
     function showSeeAlso(elem){
         $("#seealso_default").attr('style','display:none');
         $("#seealso_update").attr('style','display:block');
     }
 </script>
-
 <script type=text/javascript>
     function updateSee(elem){
         $.post("/update_see/" + $("#seetext").val()+"&&{{current_entry.id}}", function(data){
@@ -134,14 +128,12 @@
         });
     }
 </script>
-
 <script type=text/javascript>
     function showSee(elem){
         $("#see_default").attr('style','display:none');
         $("#see_update").attr('style','display:block');
     }
 </script>
-
 <script type=text/javascript>
     function resetSee(elem){
         $.post("/reset_see/"+"{{current_entry.id}}", function(data){
@@ -150,7 +142,6 @@
         })
     }
 </script>
-
 <script type=text/javascript>
     function resetSeeAlso(elem){
         $.post("/reset_see_also/"+"{{current_entry.id}}", function(data){
@@ -159,7 +150,81 @@
         })
     }
 </script>
-
+<script type=text/javascript>
+    function showAddPages(elem){
+        alert("Not currently working, sorry.");
+        // if($("#addpages_default").css('display')=='block'){
+        //     $("#addpages_default").attr('style','display:none');
+        //     $("#addpages_update").attr('style','display:block');
+        // }
+        // else if($("#addpages_default").css('display')=='none'){
+        //     $("#addpages_default").attr('style','display:block');
+        //     $("#addpages_update").attr('style','display:none');
+        //}
+    }
+</script>
+<script type=text/javascript>
+    function addPages(elem){
+        $.post("/add_pages/" + $("#addpagestext").val() + "&&{{current_entry.id}}", function(data){
+            if(data=="Error1"){
+                alert("ERROR: Submitted text contains illegal characters.");
+            }
+            else if(data=="Error2"){
+                alert("ERROR: Malformed page range.")
+            }
+            else if(data=="Error3"){
+                alert("ERROR: Unbalanced parentheses")
+            }
+            else if(data=="Error4"){
+                alert("ERROR: Unbalanced asterisks")
+            }
+            else {
+                $("#editpages_default").html(data.htmlstring);
+                $("#editpagestext").val(data.ptstring);
+                $("#addpagestext").val('');
+            }
+        });
+    }
+</script>
+<script type=text/javascript>
+    function showEditPages(elem){
+        if ($("#editpages_default").css('display')=='block'){
+            $("#editpages_default").attr('style','display:none');
+            $("#editpages_update").attr('style','display:block');
+        }
+        else if($("#editpages_default").css('display')=='none'){
+            $("#editpages_default").attr('style','display:block');
+            $("#editpages_update").attr('style','display:none');
+        }
+    }
+</script>
+<script type=text/javascript>
+    function hideEditPages(elem){
+        $("#editpages_default").attr('style','display:block');
+        $("#editpages_update").attr('style','display:none');
+    }
+</script>
+<script type=text/javascript>
+    function editPages(elem){
+        $.post('/editpages/'+$("#editpagestext").val()+"&&{{current_entry.id}}", function(data){
+        if(data=="Error1"){
+                alert("ERROR: Submitted text contains illegal characters.");
+            }
+        else if(data=="Error2"){
+                alert("ERROR: Malformed page range.")
+            }
+        else if(data=="Error3"){
+                alert("ERROR: Unbalanced parentheses")
+            }
+        else if(data=="Error4"){
+                alert("ERROR: Unbalanced asterisks")
+            }
+        else {
+            $("#editpages_default").html(data);
+            }
+        });
+    }
+</script>
 
 {% endblock %}
 
@@ -268,6 +333,36 @@
                 <a href=#  onclick="showSeeAlso(this)">Edit <i>see also</i></button></a><span style="padding-left:10px"> </span>
                 <a href=#  onclick="resetSeeAlso(this)">Reset <i>see also</i></button></a>
             </div>
+
+            <div class="page_edits">
+                <b>Add pages:</b>
+                <div id='addpages_default' style='display:block'>
+                </div>
+                <a href=#  onclick="showAddPages(this)">Add pages</button></a>
+                <br>
+                <div id='addpages_update' style='display:none'>
+                    <form id='addpages_form'>
+                        <textarea id="addpagestext" name="addpagestext" rows="4" cols="50"></textarea><br>
+                        <button type="button" id="addpagesbutton" name="addpagesbutton" onclick="addPages(this)">
+                            Add pages
+                        </button>
+                    </form>
+                </div>
+                <br>
+                <b>Current pages:</b>
+                <div id='editpages_default' style='display:block'>{{current_entry.pages_new_html.strip()|safe }}
+                </div>
+                <a href=#  onclick="showEditPages(this)">Edit pages</button></a>
+                <div id='editpages_update' style='display:none'>
+                    <form id='editpages_form'>
+                        <textarea id="editpagestext" name="editpagestext" rows="5" cols="60">{{current_entry.pages_new_pt.strip()}}</textarea><br>
+                        <button type="button" id="editpagesbutton" name="editpagesbutton" onclick="editPages(this)">
+                            Submit
+                        </button><span style="padding-left:10px"> </span>
+                    </form>
+                </div>
+            </div>
+
 
             <div style="padding: 0px 0px 0px 10px;display:none">
                 <h3>Matching dictionary</h3>

@@ -7,7 +7,7 @@ body {
    height: 100vh;
    width: 100vw;
    display: grid;
-   grid-template-columns: 55% 45%;
+   grid-template-columns: 50% 50%;
    grid-template-rows: 1fr;
    position:relative;
  }
@@ -52,9 +52,13 @@ body {
   padding: 0px 0px 0px 10px;
 }
 
+.page_edits{
+  padding: 0px 0px 0px 10px;
+}
+
  .entry_info {
    display: grid;
-   grid-template-rows: 40% 60%;
+   grid-template-rows: 70% 30%;
    padding: 10px;
    overflow: hidden;
    font-family: sans-serif;
@@ -63,7 +67,7 @@ body {
  
  .entry_details{
   display:grid;
-  overflow:hidden;
+  overflow:scroll;
   border-bottom: 1px solid lightgrey;
   background-color: white;
   width:100%;

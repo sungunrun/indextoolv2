@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, send_from_directory
+from flask import Flask, render_template, request, redirect, send_from_directory, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.dialects.postgresql import JSON, ARRAY
 import json
@@ -7,6 +7,35 @@ import sys
 # import psycopg2 as psycopg2
 #fullrange = [* range(26-23,129-23)] + [* range(132-23,387-23)] + [* range(390-23,504-23)] + [* range(506-23,772-23)]
 
+pgbkrange = [* range(1, 750)]
+def getRanges( x ):
+    hits = x
+    ranges1 = []
+    temp = []
+    state = 'DEFAULT'
+    for i in pgbkrange:
+        if i in hits and state=='DEFAULT':
+            temp.append(i)
+            gap = 0
+            state = 'BLOCK'
+            continue
+        if i in hits and state=='BLOCK':
+            temp.append(i)
+            gap=0
+            continue
+        if (i not in hits) and (state=='BLOCK') and gap==0:
+            gap=1
+            continue
+        if (i in hits) and (state=='BLOCK') and gap==1:
+            temp.append(i)
+            gap = 0
+            continue
+        if (i not in hits) and (state=='BLOCK') and gap==1:
+            ranges1.append(temp)
+            state = 'DEFAULT'
+            gap = 0
+            temp = []
+    return ranges1
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://wak:7LZBAUBS09EWun82UdLAS8TXvOsLzVDR@oregon-postgres.render.com/oupindexdb'
@@ -51,10 +80,16 @@ class Entries(db.Model):
     curr_ranges = db.Column(JSON)
     pages_final_pt = db.Column(db.String)
     pages_final_html = db.Column(db.String)
+
     is_renamed = db.Column(db.Integer)
     is_seechanged = db.Column(db.Integer)
     is_seealsochanged = db.Column(db.Integer)
     is_pageadded = db.Column(db.Integer)
+
+    new_hits_with_removals = db.Column(ARRAY(db.Integer))
+    new_emphs_json = db.Column(JSON)
+    pages_new_pt = db.Column(db.String)
+    pages_new_html = db.Column(db.String)
 
 
 
@@ -286,6 +321,206 @@ def reset_see_also(id):
     cEntry.is_seealsochanged = 0
     db.session.commit()
     return oldseealso
+
+#ADD PAGES
+@app.route('/add_pages/<pageinfo>', methods=['POST','GET'])
+def add_pages(pageinfo):
+    args = pageinfo.split('&&')
+    cEntry = Entries.query.get_or_404(int(args[1]))
+    emphasized_pages = cEntry.emphasized_pages.split(',')
+    emphasized_pages_ranges = []
+    for elem in emphasized_pages:
+        if elem == '':
+            continue
+        if '-' in elem:
+            hyphensplit = elem.split('-')
+            first = int(hyphensplit[0])
+            second = int(hyphensplit[1])+1
+            emphasized_pages_ranges.append([* range(first,second) ] )
+        else:
+            emphasized_pages_ranges.append([int(elem)])
+    additions = args[0].split(',')
+    additions2 = []
+    for elem in additions:
+        if elem == '' or elem == '\n':
+            continue
+        else:
+            additions2.append(elem.strip())
+    for elem in additions2:
+        if re.search('[^0-9\-\*\_\(\)\; ]', elem):
+            return "Error1"
+        if elem.count('*')%2!=0:
+            return "Error4"
+        if elem.count('(') != elem.count(')'):
+            return "Error3"
+        if '-' in elem:
+            elemsplit = elem.split('-')
+            if elemsplit[0]=='' or elemsplit[1]=='':
+                return "Error2"
+    added_pages = []
+    added_emphs = []
+    for elem in additions2:
+        if '-' in elem:
+            if '(' in elem:
+                pgrange = elem.split('(')[0].strip()
+                pglower = int(pgrange.split('-')[0])
+                pgupper = int(pgrange.split('-')[1])+1
+                added_pages.extend([* range(pglower,pgupper) ])
+                emphstr = elem.split('(')[1][:-1]
+                for emphelem in emphstr.split(';'):
+                    cleaned = re.sub('\*','',emphelem)
+                    if '-' in cleaned:
+                        cleanlower = int(cleaned.split('-')[0])
+                        cleanupper = int(cleaned.split('-')[1])+1
+                        added_emphs.append([*range(cleanlower,cleanupper)])
+                    else:
+                        added_emphs.append([int(cleaned)])
+            else:
+                pgrange = re.sub('\*','',elem.strip())
+                pglower = int(pgrange.split('-')[0])
+                pgupper = int(pgrange.split('-')[1])+1
+                added_pages.extend([* range(pglower,pgupper) ])
+                if '*' in elem:
+                    emphrange = re.sub('\*','',elem.strip())
+                    emphlower = int(emphrange.split('-')[0])
+                    emphupper = int(emphrange.split('-')[1])+1
+                    added_emphs.append([* range(emphlower,emphupper) ])
+        else:
+            added_pages.append(int(re.sub('\*','',elem.strip())))
+            if '*' in elem:
+                added_emphs.append([int(re.sub('\*','',elem.strip()))])
+    hitsWithRemovals = cEntry.new_hits_with_removals
+    hitsWithAdditions = sorted(list(set(hitsWithRemovals).union(set(added_pages))))
+    newRanges = getRanges(hitsWithAdditions)
+    baseEmphs = cEntry.base_emphs
+    baseEmphsJSON = cEntry.new_emphs_json
+    newEmphs = []
+    newEmphs.extend(baseEmphsJSON)
+    newEmphs.extend(emphasized_pages_ranges)
+    newEmphs.extend(added_emphs)
+    # tempEmphs = []
+    # for i in [* range(0,len(newEmphs))]:
+    #     if i == len(newEmphs)-1:
+    #         tempEmphs.append(sorted(newEmphs, key= lambda it: it[-1])[i])
+    #         continue
+    #     currlist = sorted(sorted(newEmphs, key= lambda it: it[-1])[i])
+    #     nextlist = sorted(sorted(newEmphs, key= lambda it: it[-1])[i+1])
+    #     if currlist[-1]+1 == nextlist[0]:
+    #         tempEmphs.append(currlist.extend(nextlist))
+    #     else:
+    #         tempEmphs.append(currlist)
+    # print(newEmphs)
+    # print(tempEmphs)
+    # baseEmphs grabs ONLY from emphasized_pages, which reflects non-subrange-tool emphases
+    # baseEmphsJSON is list of lists. Each sub-list corresponds to an emphasized subrange
+    # from the subrange tools (pulled from the JSON)
+
+    pt_string = ''
+    html_string=''
+    for elem in newRanges:
+        if len(elem)==1:
+            inJSONsr = 0
+            for json_sr in newEmphs:
+                if elem == json_sr:
+                    inJSONsr = 1
+                    continue
+            if inJSONsr:
+                pt_string = pt_string + '*'+str(elem[0])+'*, '
+                html_string = html_string + '<i>'+str(elem[0])+'</i>, '
+            else:
+                pt_string = pt_string + str(elem[0])+', '
+                html_string = html_string + str(elem[0])+', '
+        else:
+            inJSONsr = 0
+            #MIGHT BE TROUBLE HERE. hits with removals has noncontinunous ranges. curr_range also has holes, and the json-based ranges also do. So == should work here.
+            printed_subrange_pt = '(*'
+            printed_subrange_html = '(<i>'
+            for json_sr in newEmphs:
+                if set(elem).issubset(set(json_sr)):
+                    inJSONsr = 1
+                    continue
+                elif set(elem).intersection(set(json_sr)):
+                    inJSONsr = 2
+                    if json_sr[0]==json_sr[-1]:
+                        printed_subrange_pt = printed_subrange_pt + str(json_sr[0]) + '; '
+                        printed_subrange_html = printed_subrange_html + str(json_sr[0]) + '; '
+                    else:
+                        printed_subrange_pt = printed_subrange_pt + str(json_sr[0]) + '-' + str(json_sr[-1]) + '; '
+                        printed_subrange_html = printed_subrange_html + str(json_sr[0]) + '-' + str(json_sr[-1]) + '; '
+            if printed_subrange_pt[-2:] == '; ':
+                printed_subrange_pt = printed_subrange_pt[:-2]
+            if printed_subrange_html[-2:] == '; ':
+                printed_subrange_html = printed_subrange_html[:-2]
+            if inJSONsr == 1:
+                pt_string = pt_string + '*'+str(elem[0])+'-'+str(elem[-1])+'*, '            
+                html_string = html_string + '<i>' + str(elem[0]) + '-' + str(elem[-1]) + '</i>, '
+                continue
+            elif inJSONsr == 2:
+                pt_string = pt_string + str(elem[0])+'-'+str(elem[-1])+ ' ' + printed_subrange_pt + '*), '
+                html_string = html_string + str(elem[0])+'-'+str(elem[-1])+ ' ' + printed_subrange_html + '</i>), '
+            else:
+                pt_string = pt_string +str(elem[0])+'-'+str(elem[-1])+', '
+                html_string = html_string +  str(elem[0]) + '-' + str(elem[-1]) + ', '
+    
+    #all three are lists
+    # print(type(hitsWithRemovals))
+    # print(type(baseEmphs))
+    # print(type(baseEmphsJSON))
+
+    # print(args[0])
+    # print(args[1])
+    # print(added_pages)
+    # print(added_emphs)
+    # print(hitsWithRemovals)
+    # print(hitsWithAdditions)
+    # print(newRanges)
+    # print('\n')
+    # print(newEmphs)
+    # print(pt_string)
+
+    cEntry.new_hits_with_removals = hitsWithAdditions
+    cEntry.new_emphs_json = newEmphs
+    cEntry.pages_new_pt = pt_string
+    cEntry.pages_new_html = html_string
+    db.session.commit()
+
+    returndict = {"htmlstring": html_string, "ptstring":pt_string}
+    return jsonify(returndict)
+
+#EDIT PAGES
+@app.route('/editpages/<editinfo>', methods=['POST','GET'])
+def editpages(editinfo):
+    args = editinfo.split('&&')
+    cEntry = Entries.query.get_or_404(int(args[1]))
+    newStringPT = args[0]
+    for elem in args[0].split(','):
+        if re.search('[^0-9\-\*\_\(\)\; ]', elem):
+            return "Error1"
+        if elem.count('*')%2!=0:
+            return "Error4"
+        if elem.count('(') != elem.count(')'):
+            return "Error3"
+        if '-' in elem:
+            elemsplit = elem.split('-')
+            if elemsplit[0]=='' or elemsplit[1]=='':
+                return "Error2"
+    print(newStringPT)
+    newStringHTML = ''
+    starState = 0
+    for char in newStringPT:
+        if char == '*' and starState == 0:
+            newStringHTML = newStringHTML + '<i>'
+            starState = 1
+        elif char == '*' and starState == 1:
+            newStringHTML = newStringHTML + '</i>'
+            starState = 0
+        else:
+            newStringHTML = newStringHTML + char
+    print(newStringHTML)
+    cEntry.pages_new_html = newStringHTML
+    cEntry.pages_new_pt = newStringPT
+    db.session.commit()
+    return newStringHTML
 
 #RENDER INDIV ENTRY
 @app.route('/indiv_entry/<int:id>', methods=['POST', 'GET'])
