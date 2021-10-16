@@ -501,17 +501,6 @@ def editpages(editinfo):
     args = editinfo.split('&&')
     cEntry = Entries.query.get_or_404(int(args[1]))
     newStringPT = args[0]
-    for elem in args[0].split(','):
-        if re.search('[^0-9\-\*\_\(\)\; ]', elem):
-            return "Error1"
-        if elem.count('*')%2!=0:
-            return "Error4"
-        if elem.count('(') != elem.count(')'):
-            return "Error3"
-        if '-' in elem:
-            elemsplit = elem.split('-')
-            if elemsplit[0]=='' or elemsplit[1]=='':
-                return "Error2"
     print(newStringPT)
     newStringHTML = ''
     starState = 0
