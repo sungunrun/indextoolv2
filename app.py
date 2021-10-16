@@ -50,6 +50,14 @@ for i in [* range(3,772-23)]:
         page = page_indicator + fp.read()
         html_list.append(page)
 
+class Adds(db.Model):
+    __tablename__ = 'addtestbill'
+    id = db.Column(db.Integer, primary_key=True)
+    entry_name = db.Column(db.String)
+    see = db.Column(db.String)
+    seealso = db.Column(db.String)
+    pages = db.Column(db.String)
+
 class Entries(db.Model):
     __tablename__ = 'test4'
     id = db.Column(db.Integer, primary_key=True)
@@ -521,6 +529,29 @@ def editpages(editinfo):
     cEntry.pages_new_pt = newStringPT
     db.session.commit()
     return newStringHTML
+
+#RENDER ADD ENTRY
+@app.route('/add_entry/', methods=['POST', 'GET'])
+def add_entry():
+    adds = Adds.query.order_by(Adds.id).all()
+    return render_template('add_entry.html', adds=adds)
+
+@app.route('/add_entrydb/<info>', methods=['POST','GET'])
+def add_entrydb(info):
+    print(info)
+    fields = info.split('&')
+    entryname = re.sub('\+', ' ', fields[0].split('=')[1])
+    see = re.sub('\+', ' ', fields[1].split('=')[1])
+    seealso = re.sub('\+', ' ', fields[2].split('=')[1])
+    pages = re.sub('\+', ' ', fields[3].split('=')[1])
+    test = Adds.query.order_by(Adds.id.desc()).all()
+    newid = test[0].id + 1
+    new_row = Adds(id=newid,entry_name=entryname,see=see,seealso=seealso,pages=pages)
+    db.session.add(new_row)
+    db.session.commit()
+    # print(jsonify(add_info))
+    # print("hello")
+    return redirect('/add_entry/')
 
 #RENDER INDIV ENTRY
 @app.route('/indiv_entry/<int:id>', methods=['POST', 'GET'])

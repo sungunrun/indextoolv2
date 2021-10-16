@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block head %}
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script type=text/javascript>
+    function addEntries(elem) {
+        // $.ajax('/add_entrydb/'){
+        //     data: JSON.stringify($("#addentry")),
+        //     contentType: 'application/json',
+        //     type: 
+        // }
+        $.post("/add_entrydb/" + $("#addentry").serialize(), function(data){
+            location.reload();
+        });
+        // });
+    }
+</script>
+{% endblock %}
+
+{% block body %}
+
+<b>Add entry:</b>
+
+<form id="addentry" name="addentry">
+    <b>Entry name:</b><br>
+    <textarea name="entryname" rows="2" cols="40"> </textarea><br>
+    <b>See:</b><br>
+    <textarea name="see" rows="3" cols="60"> </textarea><br>
+    <b>See also:</b><br>
+    <textarea name="seealso" rows="3" cols="60"> </textarea><br>
+    <b>Pages</b><br>
+    <textarea id="addpagespages" name="addentrypages" rows="6" cols="60"></textarea><br>
+    <button type="button" id="submit" name="submit" onclick = "addEntries(this)" >Submit</button>
+    </form>
+
+<b> Added entries:</b>
+{% for addition in adds %}
+
+<div class="additionline"> <u>Name</u>: {{addition.entry_name}}, <u>See</u>: {{addition.see}}, <u>See also</u>: {{addition.seealso}}, <u>Pages</u>: {{addition.pages}}</div>
+
+{% endfor %}
+
+{% endblock %}
