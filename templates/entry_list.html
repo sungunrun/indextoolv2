@@ -1,12 +1,15 @@
 {% extends 'base.html' %}
 
 {% block head %}
-<h1>
-Entries List
-</h1>
+
 {% endblock %}
 
 {% block body %}
+
+<a href="/add_entry"> ADD ENTRY TOOL</a>
+<h1>
+    Entries List
+</h1>
 
 <div class="entries_list">
 {% for entry in entries %}
